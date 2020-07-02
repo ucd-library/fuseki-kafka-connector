@@ -1,7 +1,6 @@
 package edu.ucdavis.library;
 
 import java.util.LinkedList;
-import org.apache.kafka.clients.producer.Producer;
 
 public class BufferTimer implements Runnable {
 

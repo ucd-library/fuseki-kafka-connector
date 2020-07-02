@@ -26,5 +26,13 @@ mvn install:install-file \
    -Dpackaging=jar \
    -DgeneratePom=true
 
+mvn install:install-file \
+   -Dfile=$ROOT_DIR/lib/jena-fuseki-webapp-$VERSION.jar \
+   -DgroupId=org.apache.jena \
+   -DartifactId=jena-fuseki-webapp \
+   -Dversion=$VERSION \
+   -Dpackaging=jar \
+   -DgeneratePom=true
+
 cd $ROOT_DIR
 mvn package -Dmaven.test.skip=true -Drat.skip=true

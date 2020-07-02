@@ -1,17 +1,10 @@
 package edu.ucdavis.library;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.server.eventbus.DatasetChangesEvent;
@@ -33,29 +26,7 @@ public class EventHandler implements DatasetEventBusListener {
 	private Producer<String, String> producer;
 	
 	EventHandler(HashMap<String, String> kafkaParams) {
-		super();
-
-		
-		
-//		try {
-//			URL url = new URL("http://localhost:8080");
-//			HttpURLConnection con = (HttpURLConnection) url.openConnection();
-//			con.setRequestMethod("GET");
-//			BufferedReader in = new BufferedReader(
-//					  new InputStreamReader(con.getInputStream()));
-//			String inputLine;
-//			StringBuffer content = new StringBuffer();
-//			while ((inputLine = in.readLine()) != null) {
-//			    content.append(inputLine);
-//			}
-//			in.close();
-//			System.out.println("TESTING: "+ content.toString());
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
-		
+		super();	
 		this.kafkaParams = kafkaParams;
 	}
 	
@@ -67,17 +38,17 @@ public class EventHandler implements DatasetEventBusListener {
 		// Good list of available properties: 
 		// https://jaceklaskowski.gitbooks.io/apache-kafka/kafka-properties.html
 		props.put("bootstrap.servers", kafkaParams.get(FusekiKafkaConnector.KAFKA_HOST)+":"+kafkaParams.get(FusekiKafkaConnector.KAFKA_PORT));
-		props.put("acks", "all");
+//		props.put("acks", "all");
 		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");	         
 	    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-	    props.put("linger.ms", 1);
+//	    props.put("linger.ms", 1);
 	    props.put("retries", 0);
 	    
 		producer = new KafkaProducer<String, String>(props);
 	}
 	
 	private void logConnection() {
-		log.info("Attempting kafka connection. Username: " + 
+		log.info("1 Attempting kafka connection. Username: " + 
 			(kafkaParams.get(FusekiKafkaConnector.KAFKA_USERNAME) == "" ? "[empty]" : kafkaParams.get(FusekiKafkaConnector.KAFKA_USERNAME))+ " " +
 			(kafkaParams.get(FusekiKafkaConnector.KAFKA_PASSWORD) == "" ? "without password " : "with password ") +
 			"@ http://"+kafkaParams.get(FusekiKafkaConnector.KAFKA_HOST)+":"+kafkaParams.get(FusekiKafkaConnector.KAFKA_PORT)+" "+
@@ -129,8 +100,7 @@ public class EventHandler implements DatasetEventBusListener {
 	    );
 		try {
 			RecordMetadata meta =  producer.send(record).get();
-			int t = 1;
-			int y = t;
+			System.out.println("Sent to: "+meta.topic()+" "+meta.timestamp());
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
