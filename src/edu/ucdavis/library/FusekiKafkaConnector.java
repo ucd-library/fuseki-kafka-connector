@@ -42,6 +42,7 @@ public class FusekiKafkaConnector {
 	public static final String KAFKA_HOST = "KAFKA_HOST";
 	public static final String KAFKA_PORT = "KAFKA_PORT";
 	public static final String KAFKA_TOPIC = "KAFKA_TOPIC";
+	public static final String KAFKA_ENABLED = "KAFKA_ENABLED";
 
 	public static HashMap<String, Resource> KAFKA_CONFIG_PARAMS = new HashMap<String, Resource>();
 	static {
@@ -50,6 +51,7 @@ public class FusekiKafkaConnector {
 		KAFKA_CONFIG_PARAMS.put(KAFKA_HOST, resource("kafkaHost"));
 		KAFKA_CONFIG_PARAMS.put(KAFKA_PORT, resource("kafkaPort"));
 		KAFKA_CONFIG_PARAMS.put(KAFKA_TOPIC, resource("kafkaTopic"));
+		KAFKA_CONFIG_PARAMS.put(KAFKA_ENABLED, resource("kafkaEnabled"));
 	}
 
 	public static final Resource KAFKA_CONFIG_USERNAME = resource("kafkaUsername");
@@ -57,6 +59,7 @@ public class FusekiKafkaConnector {
 	public static final Resource KAFKA_CONFIG_HOST = resource("kafkaHost");
 	public static final Resource KAFKA_CONFIG_PORT = resource("kafkaPort");
 	public static final Resource KAFKA_CONFIG_TOPIC = resource("kafkaTopic");
+	public static final Resource KAFKA_CONFIG_ENABLED = resource("kafkaEnabled");
 
 	public static HashMap<String, String> KAFKA_PARAMS = new HashMap<String, String>();
 	static {
@@ -65,6 +68,7 @@ public class FusekiKafkaConnector {
 		KAFKA_PARAMS.put(KAFKA_HOST, "kafka");
 		KAFKA_PARAMS.put(KAFKA_PORT, "9092");
 		KAFKA_PARAMS.put(KAFKA_TOPIC, "fuseki-rdf-patch");
+		KAFKA_PARAMS.put(KAFKA_ENABLED, "true");
 	};
 
 	private static boolean kafkaEnabled = false;
@@ -86,7 +90,6 @@ public class FusekiKafkaConnector {
 		Map<String, String> env = System.getenv();
 
 		if (kafkaConfigs.size() == 1) {
-			kafkaEnabled = true;
 			Resource config = kafkaConfigs.get(0);
 
 			for (Entry<String, String> entry : KAFKA_PARAMS.entrySet()) {
@@ -100,7 +103,16 @@ public class FusekiKafkaConnector {
 					KAFKA_PARAMS.put(entry.getKey(), configVal);
 				}
 			}
+			
+			if( KAFKA_PARAMS.containsKey(KAFKA_ENABLED) ) {
+				String enabled = KAFKA_PARAMS.get(KAFKA_ENABLED).strip().toLowerCase();
+				if( !enabled.equals("t") && !enabled.equals("true") ) {
+					log.info("Kafka config enabled flag set to '"+enabled+"'.  Skipping Kafka connection");
+					return;
+				}
+			}
 
+			kafkaEnabled = true;
 			DatasetChangesEventBus.listen(eventHandler);
 		} else {
 			log.warn("No kafka or more than one kafka config found.  Ignoring");
