@@ -48,9 +48,9 @@ public class EventHandler implements DatasetEventBusListener {
 	}
 	
 	private void logConnection() {
-		log.info("1 Attempting kafka connection. Username: " + 
-			(kafkaParams.get(FusekiKafkaConnector.KAFKA_USERNAME) == "" ? "[empty]" : kafkaParams.get(FusekiKafkaConnector.KAFKA_USERNAME))+ " " +
-			(kafkaParams.get(FusekiKafkaConnector.KAFKA_PASSWORD) == "" ? "without password " : "with password ") +
+		log.info("Attempting kafka connection. Username: " + 
+			(kafkaParams.get(FusekiKafkaConnector.KAFKA_USERNAME).equals("") ? "[empty]" : kafkaParams.get(FusekiKafkaConnector.KAFKA_USERNAME))+ " " +
+			(kafkaParams.get(FusekiKafkaConnector.KAFKA_PASSWORD).equals("") ? "without password " : "with password ") +
 			"@ http://"+kafkaParams.get(FusekiKafkaConnector.KAFKA_HOST)+":"+kafkaParams.get(FusekiKafkaConnector.KAFKA_PORT)+" "+
 			", topic: "+kafkaParams.get(FusekiKafkaConnector.KAFKA_TOPIC)
 		);
@@ -72,10 +72,10 @@ public class EventHandler implements DatasetEventBusListener {
 	
 	private String getActionQuad(DatasetChangesEvent e) {
 		return e.getQaction().label+": "+
-			getLabel(e.getG())+" "+
 			getLabel(e.getS())+" "+
 			getLabel(e.getP())+" "+
-			getLabel(e.getO())+" .";
+			getLabel(e.getO())+" "+
+			getLabel(e.getG())+" .";
 	}
 	
 	private String getLabel(Node node) {

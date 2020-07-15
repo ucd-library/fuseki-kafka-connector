@@ -113,7 +113,6 @@ public class FusekiKafkaConnector {
 			}
 
 			kafkaEnabled = true;
-			DatasetChangesEventBus.listen(eventHandler);
 		} else {
 			log.warn("No kafka or more than one kafka config found.  Ignoring");
 		}
