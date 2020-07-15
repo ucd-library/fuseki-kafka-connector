@@ -105,7 +105,7 @@ public class FusekiKafkaConnector {
 			}
 			
 			if( KAFKA_PARAMS.containsKey(KAFKA_ENABLED) ) {
-				String enabled = KAFKA_PARAMS.get(KAFKA_ENABLED).strip().toLowerCase();
+				String enabled = KAFKA_PARAMS.get(KAFKA_ENABLED).trim().toLowerCase();
 				if( !enabled.equals("t") && !enabled.equals("true") ) {
 					log.info("Kafka config enabled flag set to '"+enabled+"'.  Skipping Kafka connection");
 					return;
