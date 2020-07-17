@@ -1,6 +1,8 @@
 package edu.ucdavis.library;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -9,7 +11,8 @@ import java.util.concurrent.ExecutionException;
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.server.eventbus.DatasetChangesEvent;
 import org.apache.jena.fuseki.server.eventbus.DatasetEventBusListener;
-import org.apache.jena.graph.Node;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -21,7 +24,6 @@ public class EventHandler implements DatasetEventBusListener {
 	private static Logger log = Fuseki.serverLog;
 	
 	private BufferTimer buffer = null;
-	private LinkedList<String> quads = null; 
 	private HashMap<String, String> kafkaParams;
 	private Producer<String, String> producer;
 	
@@ -57,50 +59,44 @@ public class EventHandler implements DatasetEventBusListener {
 	}
 
 	@Override
-	public void onChange(DatasetChangesEvent e) {
+	public synchronized void onChange(DatasetChangesEvent e) {
 		if( e.getEvent() == "change" ) {
-			if( this.quads == null ) this.quads = new LinkedList<String>();
-			this.quads.add(this.getActionQuad(e));
-			
 			if( this.buffer == null ) {
-				this.buffer = new BufferTimer(this.quads, this);
+				this.buffer = new BufferTimer(this);
 				Thread thread = new Thread(this.buffer);
 				thread.start();
+			}
+			
+			try {
+				this.buffer.addQuad(this.getActionQuad(e));
+			} catch (UnsupportedEncodingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 		}
 	}
 	
-	private String getActionQuad(DatasetChangesEvent e) {
-		return e.getQaction().label+": "+
-			getLabel(e.getS())+" "+
-			getLabel(e.getP())+" "+
-			getLabel(e.getO())+" "+
-			getLabel(e.getG())+" .";
-	}
-	
-	private String getLabel(Node node) {
-		if( node.isBlank() ) return node.getBlankNodeId().getLabelString();
-		if( node.isLiteral() ) return node.toString();
-		if( node.isURI() ) return "<"+node.toString()+">";
-		return "<>";
-	}
-	
-	public void clearBuffer() {
-		this.buffer = null;
-		this.quads = null;
+	private String getActionQuad(DatasetChangesEvent e) throws UnsupportedEncodingException {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+        LinkedList<Quad> quads = new LinkedList<Quad>();
+        quads.push(new Quad(e.getG(), e.getS(), e.getP(), e.getO()));
+        
+        RDFDataMgr.writeQuads(os, quads.iterator()) ;
+        return new String(os.toByteArray(), "UTF-8").replaceAll("\n$", "");
 	}
 
-	public void sendMessage(String msg) {
-		System.out.println(kafkaParams.get(FusekiKafkaConnector.KAFKA_TOPIC));
-		System.out.println(msg);
-		
+	public void clearBuffer() {
+		this.buffer = null;
+	}
+
+	public void sendMessage(String msg) {	
 		ProducerRecord<String, String> record = new ProducerRecord<String, String>(
 			kafkaParams.get(FusekiKafkaConnector.KAFKA_TOPIC), 
 	        msg
 	    );
 		try {
 			RecordMetadata meta =  producer.send(record).get();
-			System.out.println("Sent to: "+meta.topic()+" "+meta.timestamp());
+			log.info("Kafka message "+meta.topic()+":"+meta.partition()+":"+meta.offset()+" sent");
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -108,8 +104,5 @@ public class EventHandler implements DatasetEventBusListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-	
 	}
 }

@@ -4,11 +4,10 @@ import java.util.LinkedList;
 
 public class BufferTimer implements Runnable {
 
-	private LinkedList<String> quads = null;
+	private LinkedList<String> quads = new LinkedList<String>();
 	private EventHandler handler;
 	
-	BufferTimer(LinkedList<String> quads, EventHandler handler) {
-		this.quads = quads;
+	BufferTimer(EventHandler handler) {
 		this.handler = handler;
 	}
 	
@@ -23,7 +22,11 @@ public class BufferTimer implements Runnable {
 		insert();
 	}
 	
-	private void insert() {
+	public synchronized void addQuad(String quad) {
+		quads.push(quad);
+	}
+	
+	private synchronized void insert() {
 		if( quads.size() == 0 ) return;
 		
 		// TODO: add transaction boundaries
