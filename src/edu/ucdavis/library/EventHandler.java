@@ -82,7 +82,8 @@ public class EventHandler implements DatasetEventBusListener {
         quads.push(new Quad(e.getG(), e.getS(), e.getP(), e.getO()));
         
         RDFDataMgr.writeQuads(os, quads.iterator()) ;
-        return new String(os.toByteArray(), "UTF-8").replaceAll("\n$", "");
+        String quad = new String(os.toByteArray(), "UTF-8").replaceAll("\n$", "");
+        return e.getQaction().label.replace("#", "")+": "+quad;
 	}
 
 	public void clearBuffer() {
