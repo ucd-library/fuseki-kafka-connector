@@ -26,10 +26,15 @@ public class EventHandler implements DatasetEventBusListener {
 	private BufferTimer buffer = null;
 	private HashMap<String, String> kafkaParams;
 	private Producer<String, String> producer;
+	private LinkedList<String> quads = new LinkedList<String>();
 	
 	EventHandler(HashMap<String, String> kafkaParams) {
 		super();	
 		this.kafkaParams = kafkaParams;
+		
+		this.buffer = new BufferTimer(quads, this);
+		Thread thread = new Thread(this.buffer);
+		thread.start();
 	}
 	
 	public void connect() {
@@ -59,19 +64,17 @@ public class EventHandler implements DatasetEventBusListener {
 	}
 
 	@Override
-	public synchronized void onChange(DatasetChangesEvent e) {
+	public void onChange(DatasetChangesEvent e) {
 		if( e.getEvent() == "change" ) {
-			if( this.buffer == null ) {
-				this.buffer = new BufferTimer(this);
-				Thread thread = new Thread(this.buffer);
-				thread.start();
-			}
-			
+			String actionStr = "";
 			try {
-				this.buffer.addQuad(this.getActionQuad(e));
+				actionStr = this.getActionQuad(e);
 			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
+			}
+
+			synchronized(quads) {
+				this.quads.add(actionStr);
 			}
 		}
 	}
@@ -84,10 +87,6 @@ public class EventHandler implements DatasetEventBusListener {
         RDFDataMgr.writeQuads(os, quads.iterator()) ;
         String quad = new String(os.toByteArray(), "UTF-8").replaceAll("\n$", "");
         return e.getQaction().label.replace("#", "")+": "+quad;
-	}
-
-	public void clearBuffer() {
-		this.buffer = null;
 	}
 
 	public void sendMessage(String msg) {	
