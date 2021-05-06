@@ -47,7 +47,7 @@ config.ttl
 The build process happen inside the `maven:3-openjdk-8` docker image.  The `./build/run.sh` script does the following:
 
   - Cleans the `target` and `lib` directories
-  - pulls the correct `ucdlib/jena-fuseki-eb` docker image which has the custom `jena-fuseki-core-*.jar` and `jena-fuseki-webapp-*.jar` required for the build.
+  - pulls the correct `gcr.io/ucdlib-pubreg/jena-fuseki-eb` docker image which has the custom `jena-fuseki-core-*.jar` and `jena-fuseki-webapp-*.jar` required for the build.
   - loads the required jars from the docker image into the `./lib` directory
   - mounts this directory into the `maven:3-openjdk-8` container
   - runs the `./build/build.sh` command from within the container which; installs the custom jars from local files, then runs the `mvn package` command to build the jars
@@ -57,5 +57,9 @@ The build process happen inside the `maven:3-openjdk-8` docker image.  The `./bu
 
   - Load the https://github.com/ucd-library/jena library into eclipse.  You can follow the Jena provided tutorial here: https://jena.apache.org/tutorials/using_jena_with_eclipse.html
   - Add this repository to eclipse, importing as a maven package.  Make sure to run `maven install` from within the project in eclipse.
+    -  `mvn -Drat.skip=true -Dmaven.test.skip=true -DskipTests install`
   - modify the config.ttl file to use this jar.  See Usage section above.  The config file is located in `./jena-fuseki2/jena-fuseki-webapp/run/config.ttl` which is in the `jena-fuseki-webapp` sub project in eclipse.
-  - Addthe `Java Appplication` run configuration with main set to `org.apache.jena.fuseki.cmd.FusekiCmd` in project `jena-fuseki-webapp`.  No arguments required.  You many need to click the 'Dependencies' tab and add the `fuseki-kafka-connector` project.
+  - Add `jena-fuseki-core` and `jena-fuseki-webapp` to the fuseki-kafka-connector build path. 
+  - Add the `Java Appplication` run configuration with main set to `org.apache.jena.fuseki.cmd.FusekiCmd` in project `jena-fuseki-webapp`.  No arguments required.  You many need to click the 'Dependencies' tab and add the `jena-kafka-connector` project.
+    - The  `jena-kafka-connector` project will need to be compiled first. Run -> Maven Build -> Target should be project.
+    - Add the kafka-clients jar to the run dependencies as well  

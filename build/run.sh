@@ -1,7 +1,7 @@
 #! /bin/bash
 
 
-VERSION=3.16.0-SNAPSHOT
+VERSION=3.17.0
 JENA_DOCKER_VERSION=latest
 
 set -e
@@ -21,8 +21,8 @@ if [[ -f "lib/jena-fuseki-core-$VERSION.jar" ]]; then
 fi
 
 mkdir -p lib
-docker pull ucdlib/jena-fuseki-eb:$JENA_DOCKER_VERSION
-docker run -v $(pwd)/lib:/jars ucdlib/jena-fuseki-eb:$JENA_DOCKER_VERSION bash -c "cp /jena-fuseki/lib/jena-fuseki-core-$VERSION.jar /jars/"
-docker run -v $(pwd)/lib:/jars ucdlib/jena-fuseki-eb:$JENA_DOCKER_VERSION bash -c "cp /jena-fuseki/lib/jena-fuseki-webapp-$VERSION.jar /jars/"
+docker pull gcr.io/ucdlib-pubreg/jena-fuseki-eb:$JENA_DOCKER_VERSION
+docker run -v $(pwd)/lib:/jars gcr.io/ucdlib-pubreg/jena-fuseki-eb:$JENA_DOCKER_VERSION bash -c "cp /jena-fuseki/lib/jena-fuseki-core-$VERSION.jar /jars/"
+docker run -v $(pwd)/lib:/jars gcr.io/ucdlib-pubreg/jena-fuseki-eb:$JENA_DOCKER_VERSION bash -c "cp /jena-fuseki/lib/jena-fuseki-webapp-$VERSION.jar /jars/"
 
 docker run -v $(pwd):/code maven:3-openjdk-8 bash -c "/code/build/build.sh $VERSION /code"
